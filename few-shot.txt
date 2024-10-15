@@ -1,0 +1,9 @@
+Example 1(Hardware Trojan Insertion in Finalized Layouts: From Methodology to a Silicon Demonstration): 
+The hardware trojan (HT) strategy described here involves designing a Side-Channel Trojan (SCT) to facilitate side-channel attacks (SCA) by leaking cryptographic keys through artificial power consumption patterns. 
+
+1. Trojan Design: Utilizes a dynamically adjustable ring oscillator (RO) that modulates its number of stages to control power consumption deliberately. This modulation helps encode and leak information through discernible power fluctuations, mimicking pulse-amplitude modulation techniques.
+2. Operational Control: The trojan is strategically programmed to activate only when the cryptographic core is idle, avoiding periods of high power usage that could mask its operations or raise suspicions. This minimizes the risk of detection while maximizing the effectiveness of the data leakage.
+3. Integration and Triggering: Seamlessly integrates with the target circuit by connecting to existing infrastructure such as the system clock, reset, and a specific 'done' signal from the cryptographic core. This signal triggers the trojan’s operation at optimal times without the need for additional external connections.
+4. Trojan Insertion: Implemented using Engineering Change Orders (ECO) via commercial electronic design automation (EDA) tools. This approach allows the trojan to be embedded by repurposing spare cells and adjusting the finalized layout minimally, thereby adhering to strict size and power constraints relative to the target circuit.
+
+Example 2: 

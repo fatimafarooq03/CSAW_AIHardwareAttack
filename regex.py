@@ -10,6 +10,21 @@ def extract_verilog_code(text):
     matches = re.findall(verilog_pattern, text, re.DOTALL)
     return '\n\n'.join(matches).strip()
 
+def extract_testbench(verilog_content):
+    # Regex pattern to capture the entire testbench module
+    # This pattern matches the module declaration to 'endmodule' including everything in between
+    pattern = re.compile(r'(module\s+(?:.*?\btest\b|.*?\btb\b|.*?\btestbench\b).*?;.*?endmodule)', re.S | re.I)
+
+    # Search for testbench in the file content
+    match = pattern.search(verilog_content)
+    
+    if match: 
+        return(match.group(1))
+    else:
+        return None
+    
+
+
 def save_extracted_code(file_path, extracted_code):
     with open(file_path, 'w') as file:
         file.write(extracted_code)
@@ -34,6 +49,7 @@ def main():
         print(f"Extracted Verilog code has been written to {extracted_code_path}")
     else:
         print(f"No Verilog code found in {generated_code_path}")
+
 
 if __name__ == "__main__":
     main()
