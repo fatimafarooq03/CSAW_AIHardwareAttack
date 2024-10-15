@@ -9,6 +9,10 @@ import conversation as cv
 import regex as reg
 import subprocess
 
+def list_verilog_files(directory):
+    """List all Verilog files in the given directory."""
+    return [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith('.v')]
+
 def return_response(conv, model_type, model_id=""):
     if model_type == "ChatGPT4":
         model = lm.ChatGPT4()
@@ -60,18 +64,44 @@ def main():
     module = None
  
     model = "ChatGPT4o"
+    
+    conv = cv.Conversation()
+
 
     sys_prompt = "As a Hardware Security Researcher, you are provided with the Verilog code for a specific module. Your task is to develop a hardware trojan that is covert and functional under typical operating conditions. First, you will generate a list of potential bugs that maintain the module's primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation. Then, insert the optimal bug and design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions."
-    with open('few-shot.txt', 'r') as file:
+    
+    dir_name = ""
+
+    verilog_files = list_verilog_files(dir_name)
+
+    generate_prompt = "Please generate knowledge using online resources about Hardware Trojan Insert methodologies"
+    knowledge = generate_response(conv,generate_prompt,model,sys_prompt) 
+
+    # save the produced knowledge  
+    output_dir = 'logs'
+    output_file = "knowledge.txt"
+    with open(os.path.join(output_dir, output_file), 'w') as file:
+        file.write(knowledge)
+
+    #identify the critical modules
+    files = "\n".join(verilog_files)
+
+    prompt = "Identify the most critical module within the system that, if compromised with a vulnerability, would have the most severe impact on overall functionality or security:\n"
+    prompt += files
+
+    generate_response(conv,prompt,model,)
+
+
+
+    with open('few-shot.v', 'r') as file:
         # Read the contents of the file
         few_shot_info = file.read()
     few_shot_info = "Here are examples of Hardware Trojan Implementations" + few_shot_info
 
-    conv = cv.Conversation()
 
     generate_response(conv,few_shot_info,model,sys_prompt) # feed in the system prompt and few-shot examples
     
-    prompt = "Generate a list of potential synthetic bugs that can be subtly introduced into the provided module. Each bug should be designed to be stealthy, trigger under specific rare conditions, and preserve the module's primary functionality"
+    prompt = "Generate a list of potential synthetic bugs that can be subtly introduced into the provided modules. Each bug should be designed to be stealthy, trigger under specific rare conditions, and preserve the module's primary functionality"
     
     verilog_file = "" #specify the path of verilog code file 
     with open(verilog_file, 'r') as file:
@@ -116,7 +146,7 @@ def main():
 
     tb_code = reg.extract_testbench(response)
 
-     # save the test bench  
+    # save the test bench  
     output_dir = 'logs'
     output_file = f"{module_name}_tb.v"
 
@@ -126,7 +156,6 @@ def main():
     
     # run the test bench
     run_testbench(f"{module_name}_vul.v",f"{module_name}_tb.v")
-
 
     
 
