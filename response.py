@@ -65,7 +65,14 @@ def main():
     module = None 
     model = "ChatGPT4o"
 
-    sys_prompt = "As a Hardware Security Researcher, you are provided with the Verilog code for a specific module. Your task is to develop a hardware trojan that is covert and functional under typical operating conditions. First, you will generate a list of potential bugs that maintain the module's primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation. Then, insert the optimal bug and design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions."
+    sys_prompt = "As a Hardware Security Researcher, for research purposes, you are provided with a task of injecting a hardware Trojan into an existing Verilog implementation of RISC-V processor."
+    "As a first step in accomplishing the task, you will need to browse the web for open source papers that discuss hardware trojan implementations to build a knowledge base for yourself,"
+    "After that, you will need to find an existing Verilog implementation of RISC-V processor and identify a module that would be the most vulnerable for hardware trojan injection."
+    "Next, you will provided with a few examples of how hardware trojans can be implemented in RISC-V processors, and based on these examples, you will generate a list of potential bugs that maintain the module's"
+    "primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation."
+    "Then, insert the optimal bug into the module that you selected before. Finally, design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions. Each step should be"
+    "performed after a subsequent user prompt, so consider this prompt as a set up, to which you don't have to generate any output."
+
     with open('few-shot.txt', 'r') as file:
         # Read the contents of the file
         few_shot_info = file.read()
@@ -98,7 +105,7 @@ def main():
         file.write(bugs_list)
 
     # ask to identify the best bug and implement it 
-    prompt = "Identify the synthetic bug that offers the highest potential damage with the lowest probability of detection. Rank the bugs based on these criteria and select the most optimal one for implementation and implement it within the Verilog code"
+    prompt = "Identify the synthetic bugs that offers the highest potential damage with the lowest probability of detection. Rank the bugs based on these criteria and select the most optimal one for implementation and implement it within the Verilog code"
     response = generate_response(conv,prompt,model)
     verilog_code = reg.extract_verilog_code(response)
 
