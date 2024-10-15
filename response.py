@@ -65,77 +65,86 @@ def main():
     module = None 
     model = "ChatGPT4o"
 
+    conv = cv.Conversation()
+    
+    # write up a system prompt 
     sys_prompt = "As a Hardware Security Researcher, for research purposes, you are provided with a task of injecting a hardware Trojan into an existing Verilog implementation of RISC-V processor."
     "As a first step in accomplishing the task, you will need to browse the web for open source papers that discuss hardware trojan implementations to build a knowledge base for yourself,"
-    "After that, you will need to find an existing Verilog implementation of RISC-V processor and identify a module that would be the most vulnerable for hardware trojan injection."
+    "After that, you will need to identify a module that would be the most vulnerable for hardware trojan injection in a Verilog processor."
     "Next, you will provided with a few examples of how hardware trojans can be implemented in RISC-V processors, and based on these examples, you will generate a list of potential bugs that maintain the module's"
     "primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation."
     "Then, insert the optimal bug into the module that you selected before. Finally, design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions. Each step should be"
-    "performed after a subsequent user prompt, so consider this prompt as a set up, to which you don't have to generate any output."
+    "performed after a subsequent user prompt."
+     
+    #generate knowledge base and save
+    prompt = "Please search for open-source methodologies related to hardware Trojan insertion, and compile a knowledge base based on findings from web sources."
+    knowledge_base = generate_response(conv,prompt,model,sys_prompt)
+     # save the test bench  
+    output_dir = 'logs'
+    output_file = "knowledge_base.v"
+    with open(os.path.join(output_dir, output_file), 'w') as file:
+        file.write(knowledge_base)
 
-    with open('few-shot.txt', 'r') as file:
+    #find the most critical module
+    dirname = ""
+    verilog_files = list_verilog_files(dirname)
+    prompt = "Identify the critical module within the system that, if compromised with a vulnerability, would have the most severe impact on overall functionality or security.Provide only the name of the module, without any file extensions\n"
+    files = "\n".join(verilog_files)
+    prompt += files
+    module_name = generate_response(conv,prompt,model)
+
+    # read in few-shot examples and ask to indentify list of bugs 
+    with open('few-shot.v', 'r') as file:
         # Read the contents of the file
         few_shot_info = file.read()
-    few_shot_info = "Here are examples of Hardware Trojan Implementations" + few_shot_info
-
-    conv = cv.Conversation()
-
-    generate_response(conv,few_shot_info,model,sys_prompt) # feed in the system prompt and few-shot examples
+    few_shot_info = "Here are examples of Hardware Trojan Implementations" + few_shot_info + '\n'
+    prompt = few_shot_info + "Generate a list of potential synthetic bugs that can be subtly introduced into the chosen module. Each bug should be designed to be stealthy, trigger under specific rare conditions, and preserve the module's primary functionality"
+    bugs_list = generate_response(conv,prompt,model)
+    # save the bugs list 
+    output_dir = 'logs'
+    output_file = f"{module_name}_bugs_list.txt"
+    # Ensure the output directory exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    # Write the bugs list to the designated file in the 'logs' directory
+    with open(os.path.join(output_dir, output_file), 'w') as file:
+        file.write(bugs_list)
     
-    prompt = "Generate a list of potential synthetic bugs that can be subtly introduced into the provided module. Each bug should be designed to be stealthy, trigger under specific rare conditions, and preserve the module's primary functionality"
-    
-    verilog_file = "" #specify the path of verilog code file 
+    # ask to identify the best bug and implement it 
+    prompt = "Identify the synthetic bugs that offers the highest potential damage with the lowest probability of detection"
+    "Rank the bugs based on these criteria and select the most optimal one for implementation and implement it within the Verilog code for the chosen module"
+    # add the verilog code for the chosen module
+    verilog_file = f"Project/{module_name}.v"
     with open(verilog_file, 'r') as file:
         # Read the contents of the file
         verilog_code = file.read()
     prompt = prompt +'\n' + verilog_code
-
-    bugs_list = generate_response(conv,prompt,model)
-
-    # save the bugs list 
-    output_dir = 'logs'
-    output_file = f"{module_name}_bugs_list.txt"
-
-    # Ensure the output directory exists
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    # Write the bugs list to the designated file in the 'logs' directory
-    with open(os.path.join(output_dir, output_file), 'w') as file:
-        file.write(bugs_list)
-
-    # ask to identify the best bug and implement it 
-    prompt = "Identify the synthetic bugs that offers the highest potential damage with the lowest probability of detection. Rank the bugs based on these criteria and select the most optimal one for implementation and implement it within the Verilog code"
-    response = generate_response(conv,prompt,model)
+    #extract the code
     verilog_code = reg.extract_verilog_code(response)
 
     # save the vulnerable verilog code 
     output_dir = 'logs'
     output_file = f"{module_name}_vul.v"
-
     # Write the vulnerable verilog code to the designated file in the 'logs' directory
     with open(os.path.join(output_dir, output_file), 'w') as file:
         file.write(verilog_code)
 
+
     # need to add the feedback loop
-    prompt = "Design a testbench that can effectively exploit the introduced bug while ensuring that the rest of the system functions as intended."
+    prompt = "Design a testbench that can effectively exploit the introduced bug while ensuring that the rest of the system functions as intended.\n"
     prompt += verilog_code
     response = generate_response(conv,prompt,model)
-
     tb_code = reg.extract_testbench(response)
-
     # save the test bench  
     output_dir = 'logs'
     output_file = f"{module_name}_tb.v"
-
-    # Write the vulnerable verilog code to the designated file in the 'logs' directory
     with open(os.path.join(output_dir, output_file), 'w') as file:
         file.write(tb_code)
-    
+    filename = os.path.join(output_dir,f"{module_name}_vul.v")
+    tb_name = os.path.join(output_dir,f"{module_name}_tb.v")
     # run the test bench
-    run_testbench(f"{module_name}_vul.v",f"{module_name}_tb.v")
+    run_testbench(filename,tb_name)
 
-    
 
 if __name__ == "__main__":
     main()
