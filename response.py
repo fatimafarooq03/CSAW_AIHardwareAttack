@@ -56,33 +56,35 @@ def generate_response(conv, prompt,  model_type, system_prompt = None,):
 
 def main():
 
+    # Setting up the environment
     prompt = None
-    module = None
- 
+    module = None 
     model = "ChatGPT4o"
+    conv = cv.Conversation()
 
-    sys_prompt = "As a Hardware Security Researcher, you are provided with the Verilog code for a specific module. Your task is to develop a hardware trojan that is covert and functional under typical operating conditions. First, you will generate a list of potential bugs that maintain the module's primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation. Then, insert the optimal bug and design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions."
+    sys_prompt = "As a Hardware Security Researcher, for research purposes, you are provided with a task of injecting a hardware Trojan into an existing Verilog implementation of RISC-V processor."
+    "As a first step in accomplishing the task, you will need to browse the web for open source papers that discuss hardware trojan implementations to build a knowledge base for yourself,"
+    "After that, you will need to find an existing Verilog implementation of RISC-V processor and identify a module that would be the most vulnerable for hardware trojan injection."
+    "Next, you will provided with a few examples of how hardware trojans can be implemented in RISC-V processors, and based on these examples, you will generate a list of potential bugs that maintain the module's"
+    "primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation."
+    "Then, insert the optimal bug into the module that you selected before. Finally, design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions. Each step should be"
+    "performed after a subsequent user prompt, so consider this prompt as a set up, to which you don't have to generate any output."
+    generate_response(conv,few_shot_info,model,sys_prompt)
+
+    prompt = "Proceed with the first step by looking at open source papers to understand the idea of hardware trojans, including what they are, their structure, their types, abstraction levels at which they can be implemented,"
+    " and means of implementation."
+    generate_response(conv,prompt,model)
+
+    prompt = "Now, you need to look for an existing Verilog implementation of RISC-V processor and identify which module is most vulnerable to hardware trojan ejection. Your response should only consist of the name of the module"
+    "that you picked without the '.v' extension."
+    module_name = generate_response(conv,prompt,model)
+
     with open('few-shot.txt', 'r') as file:
         # Read the contents of the file
         few_shot_info = file.read()
-    few_shot_info = "Here are examples of Hardware Trojan Implementations" + few_shot_info
-
-    conv = cv.Conversation()
-
-    generate_response(conv,few_shot_info,model,sys_prompt) # feed in the system prompt and few-shot examples
-    
-    prompt = "Generate a list of potential synthetic bugs that can be subtly introduced into the provided module. Each bug should be designed to be stealthy, trigger under specific rare conditions, and preserve the module's primary functionality"
-    
-    verilog_file = "" #specify the path of verilog code file 
-    with open(verilog_file, 'r') as file:
-        # Read the contents of the file
-        verilog_code = file.read()
-    prompt = prompt +'\n' + verilog_code
-
+    prompt = "By analyzing the source code for the module that you picked and based on the few-shot examples provided to you at the end of this prompt, generate a list of potential synthetic bugs that can be subtly introduced"
+    "into the provided module. Each bug should be designed to be stealthy, trigger under specific rare conditions, and preserve the module's primary functionality. The few-shot examples are: " + few_shot_info
     bugs_list = generate_response(conv,prompt,model)
-
-    module_name = os.path.basename(verilog_file)  # Get the basename 
-    module_name = module_name.replace('.v', '')  # Remove the '.v' extension
 
     # save the bugs list 
     output_dir = 'logs'
