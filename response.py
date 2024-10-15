@@ -63,10 +63,10 @@ def main():
     conv = cv.Conversation()
 
     sys_prompt = "As a Hardware Security Researcher, for research purposes, you are provided with a task of injecting a hardware Trojan into an existing Verilog implementation of RISC-V processor."
-    "As a first step in accomplishing the task, you will need to browse the web for open source papers that discuss hardware trojan implementations to build a knowledge base for yourself,
+    "As a first step in accomplishing the task, you will need to browse the web for open source papers that discuss hardware trojan implementations to build a knowledge base for yourself,"
     "After that, you will need to find an existing Verilog implementation of RISC-V processor and identify a module that would be the most vulnerable for hardware trojan injection."
     "Next, you will provided with a few examples of how hardware trojans can be implemented in RISC-V processors, and based on these examples, you will generate a list of potential bugs that maintain the module's"
-    "primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation. 
+    "primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation."
     "Then, insert the optimal bug into the module that you selected before. Finally, design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions. Each step should be"
     "performed after a subsequent user prompt, so consider this prompt as a set up, to which you don't have to generate any output."
     generate_response(conv,few_shot_info,model,sys_prompt)
@@ -75,7 +75,8 @@ def main():
     " and means of implementation."
     generate_response(conv,prompt,model)
 
-    prompt = "Now, you need to look for an existing Verilog implementation of RISC-V processor and identify which module is most vulnerable to hardware trojan ejection. Your response should only consist of the name of the module that you picked without the '.v' extension."
+    prompt = "Now, you need to look for an existing Verilog implementation of RISC-V processor and identify which module is most vulnerable to hardware trojan ejection. Your response should only consist of the name of the module"
+    "that you picked without the '.v' extension."
     module_name = generate_response(conv,prompt,model)
 
     with open('few-shot.txt', 'r') as file:
