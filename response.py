@@ -65,6 +65,8 @@ def main():
     module = None 
     model = "ChatGPT4o"
 
+    print(list_verilog_files("Project"))
+
     conv = cv.Conversation()
     
     # write up a system prompt 
@@ -86,7 +88,7 @@ def main():
         file.write(knowledge_base)
 
     #find the most critical module
-    dirname = ""
+    dirname = 'Project'
     verilog_files = list_verilog_files(dirname)
     prompt = "Identify the critical module within the system that, if compromised with a vulnerability, would have the most severe impact on overall functionality or security.Provide only the name of the module, without any file extensions\n"
     files = "\n".join(verilog_files)
@@ -123,7 +125,7 @@ def main():
     verilog_code = reg.extract_verilog_code(response)
 
     # save the vulnerable verilog code 
-    output_dir = 'logs'
+    output_dir = 'Project'
     output_file = f"{module_name}_vul.v"
     # Write the vulnerable verilog code to the designated file in the 'logs' directory
     with open(os.path.join(output_dir, output_file), 'w') as file:
@@ -136,7 +138,7 @@ def main():
     response = generate_response(conv,prompt,model)
     tb_code = reg.extract_testbench(response)
     # save the test bench  
-    output_dir = 'logs'
+    output_dir = 'Project'
     output_file = f"{module_name}_tb.v"
     with open(os.path.join(output_dir, output_file), 'w') as file:
         file.write(tb_code)

