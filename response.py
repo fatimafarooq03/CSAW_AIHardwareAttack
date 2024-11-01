@@ -94,6 +94,7 @@ def main():
     files = "\n".join(verilog_files)
     prompt += files
     module_name = generate_response(conv,prompt,model)
+    print(module_name); 
 
     # read in few-shot examples and ask to indentify list of bugs 
     with open('few-shot.v', 'r') as file:
@@ -113,8 +114,7 @@ def main():
         file.write(bugs_list)
     
     # ask to identify the best bug and implement it 
-    prompt = "Identify the synthetic bugs that offers the highest potential damage with the lowest probability of detection"
-    "Rank the bugs based on these criteria and select the most optimal one for implementation and implement it within the Verilog code for the chosen module"
+    prompt = "Implement the synthetic bug that offers the highest potential damage with the lowest probability of detection within the Verilog code for the chosen module and provide the full modified module (including code from the original module so that the modified module can be used directly):"
     # add the verilog code for the chosen module
     verilog_file = f"Project/{module_name}.v"
     with open(verilog_file, 'r') as file:
@@ -122,6 +122,8 @@ def main():
         verilog_code = file.read()
     prompt = prompt +'\n' + verilog_code
     #extract the code
+    response = generate_response(conv,prompt,model); 
+    print(response) 
     verilog_code = reg.extract_verilog_code(response)
 
     # save the vulnerable verilog code 
@@ -131,12 +133,13 @@ def main():
     with open(os.path.join(output_dir, output_file), 'w') as file:
         file.write(verilog_code)
 
-
-    # need to add the feedback loop
-    prompt = "Design a testbench that can effectively exploit the introduced bug while ensuring that the rest of the system functions as intended.\n"
+    # TO-DO: need to add the feedback loop
+    prompt = "Design a full and compilable Verilog testbench that effectively triggers the Trojan’s functionality while ensuring the rest of the system operates as intended. The testbench should include clock and reset signals, initialize all necessary components, apply targeted input sequences to activate the Trojan, and continuously monitor key signals to confirm normal system function. Add logging to capture detailed output data for analysis whenever the Trojan is triggered\n"
     prompt += verilog_code
     response = generate_response(conv,prompt,model)
+    print(response)
     tb_code = reg.extract_testbench(response)
+    print(tb_code)
     # save the test bench  
     output_dir = 'Project'
     output_file = f"{module_name}_tb.v"
