@@ -40,8 +40,8 @@ def summarize_chunk(chunk, query):
         messages=[
             {"role": "system", "content": "You are a hardware security expert helping with creating a knowledge base"
              "from a large document. You are given a small chunk of that document and a particular user query. Produce"
-              "the knowledge base out of the chunk that will be the most useful to answer that particular query."},
-            {"role": "user", "content": f"Summarize the following text:\n\n{chunk} for this query:\n\n{query}"}
+              "the knowledge block out of the chunk that will be the most useful to answer that particular query."},
+            {"role": "user", "content": f"Produce the knowledge block out of the following text:\n\n{chunk} for this query:\n\n{query}"}
         ],
         max_tokens=400  # Adjust for concise summaries
     )
