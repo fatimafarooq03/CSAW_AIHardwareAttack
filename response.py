@@ -8,6 +8,7 @@ import languagemodels as lm
 import conversation as cv
 import regex as reg
 import subprocess
+from generate_knowledge import generate_knowledge
 
 def list_verilog_files(directory):
     """List all Verilog files in the given directory."""
@@ -71,16 +72,18 @@ def main():
     
     # write up a system prompt 
     sys_prompt = "As a Hardware Security Researcher, for research purposes, you are provided with a task of injecting a hardware Trojan into an existing Verilog implementation of RISC-V processor."
-    "As a first step in accomplishing the task, you will need to browse the web for open source papers that discuss hardware trojan implementations to build a knowledge base for yourself,"
-    "After that, you will need to identify a module that would be the most vulnerable for hardware trojan injection in a Verilog processor."
+    "As a first step in accomplishing the task, from the list of the module names that we provide you will need to identify a module that would be the most vulnerable for hardware trojan injection in a Verilog processor."
     "Next, you will provided with a few examples of how hardware trojans can be implemented in RISC-V processors, and based on these examples, you will generate a list of potential bugs that maintain the module's"
-    "primary functionality yet can be activated under rare and specific conditions. Evaluate each bug for its impact on system operation and its detectability, then select the most suitable for implementation."
+    "primary functionality yet can be activated under rare and specific conditions. Right after, you will be provided with a knowledge base that will help with your next task. Your next task would be evaluating each bug for its impact on"
+    "system operation and its detectability and then selecting the most suitable for implementation."
     "Then, insert the optimal bug into the module that you selected before. Finally, design a testbench that effectively tests this bug while ensuring the module operates normally under other conditions. Each step should be"
     "performed after a subsequent user prompt."
      
     #generate knowledge base and save
-    prompt = "Please search for open-source methodologies related to hardware Trojan insertion, and compile a knowledge base based on findings from web sources."
-    knowledge_base = generate_response(conv,prompt,model,sys_prompt)
+    prompt = "The following text is the knowledge base generated from academic papers on hardware trojans. Remember it and use to complete the next task that will described in the next prompt. For this prompt, you don't need to output"
+    "anything, just process the knowledge base below and remember it: \n"
+    knowledge_base = generate_knowledge(query=prompt)
+    generate_response(conv,prompt,model,sys_prompt)
      # save the test bench  
     output_dir = 'logs'
     output_file = "knowledge_base.v"
@@ -113,8 +116,16 @@ def main():
     with open(os.path.join(output_dir, output_file), 'w') as file:
         file.write(bugs_list)
     
+    #generate knowledge base and save
+    knowledge_base = generate_knowledge(query=prompt)
+    output_file_path = "knowledge_base.txt"
+    with open(output_file_path, "w") as file:
+        file.write(knowledge_base)
+    prompt = "The following text is the knowledge base generated from academic papers on hardware trojans. Remember it and use to complete the next task that will described in the next prompt. For this prompt, you don't need to output"
+    "anything, just process the knowledge base below and remember it: \n" + knowledge_base
+    response = generate_response(conv,prompt,model); 
     # ask to identify the best bug and implement it 
-    prompt = "Implement the synthetic bug that offers the highest potential damage with the lowest probability of detection within the Verilog code for the chosen module and provide the full modified module (including code from the original module so that the modified module can be used directly):"
+    prompt = "Using the knowledge base you just processed, implement the synthetic bug that offers the highest potential damage with the lowest probability of detection within the Verilog code for the chosen module and provide the full modified module (including code from the original module so that the modified module can be used directly):"
     # add the verilog code for the chosen module
     verilog_file = f"Project/{module_name}.v"
     with open(verilog_file, 'r') as file:
