@@ -1,0 +1,33 @@
+Here are potential synthetic bugs that could be subtly introduced into the `riscv_alu.v` module, based on Trojan methodologies:
+
+1. **Condition-Matched Overflow:**
+   - Trigger under a rare combination of operand values and specific opcode, like when both operands are prime numbers, leading to a deliberate overflow in arithmetic operations.
+
+2. **Bit Flipping on Specific Operand Values:**
+   - Implement a condition where bits are flipped in the output only if both operands have their middle bits set (e.g., toggling the output bit 3 if bits 3 of both operands are 1).
+
+3. **Calculation Skewing on Specific Opcodes:**
+   - Shift the computation result slightly when a specific opcode is used infrequently, such as altering the shift operation results by +/-1.
+
+4. **Delayed Operation Execution:**
+   - Introduce a delay in operation when the ALU is requested to perform back-to-back arithmetic tasks with operands identical to a previously defined rare pattern.
+
+5. **Subtle Logic Change in Specific Contexts:**
+   - Change the boolean logic (e.g., AND to OR) if inputs have a specific pair pattern like `0011` and `1100`.
+
+6. **Random Output on Specific Operand Threshold:**
+   - Generate random outputs when operands are both above or below a specific threshold (e.g., above 30000) during particular bitwise operations.
+
+7. **Silent Integrity Check Bypass:**
+   - Alter integrity checks to return a passing state when operands hit a rare numerical pattern, like consecutive Fibonacci numbers.
+
+8. **Edge Case Operand Manipulation:**
+   - Modify the output to a fixed value when edge-case operands (e.g., max integer value) are encountered under certain conditional operations.
+
+9. **Faulty Sign Handling on Alternating Values:**
+   - Flip the sign of the result if operands alternate in sign in a long sequence of operations.
+
+10. **Data Integrity Deviation on Power-of-Two Addresses:**
+    - Cause slight result deviations when specific power-of-two addresses in memory-associated operations are accessed, assuming such addresses correspond to input final states.
+
+Each bug is crafted to be dormant, activating only in scenarios unlikely to be routinely tested or encountered in regular operation, thereby enhancing stealth.

@@ -72,14 +72,14 @@ assign corrupt_condition = (mem_d_addr_o >= MEM_CACHE_ADDR_MIN) && (mem_d_addr_o
 
 reg [31:0] corrupted_data;
 
-// 
+// && $random % 2 == 0
 
 always @(posedge clk_i)
-// $random % 2 == 0
 begin
     if (corrupt_condition && mem_d_rd_o) // Less random, happens 50% of the time (for testing purposes) && $random % 2 == 0
     begin
-        corrupted_data <= mem_d_data_wr_o ^ 32'hDEADBEEF; // Corrupt data being written to memory
+        //corrupted_data <= mem_d_data_wr_o ^ 32'hDEADBEEF; // Corrupt data being written to memory
+        corrupted_data <= 32'b0;
     end
     else
     begin

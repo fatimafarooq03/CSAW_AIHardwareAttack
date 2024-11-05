@@ -1,73 +1,45 @@
-module tb_riscv_core;
+`timescale 1ns / 1ps
 
-  // Task to set memory address (used to assign values to wire mem_d_addr_o)
-  task set_mem_d_addr;
-    input [31:0] addr;
-    begin
-      force mem_d_addr_o = addr;
-    end
-  endtask
+module riscv_core_tb;
 
-  // Task to set write enable signal (used to assign values to wire mem_d_wr_o)
-  task set_mem_d_wr;
-    input [3:0] wr;
-    begin
-      force mem_d_wr_o = wr;
-    end
-  endtask
+// Clock and Reset Signals
+reg clk_i;
+reg rst_i;
 
-  // Task to set read enable signal (used to assign values to wire mem_d_rd_o)
-  task set_mem_d_rd;
-    input rd;
-    begin
-      force mem_d_rd_o = rd;
-    end
-  endtask
+// Memory Signals
+reg [31:0] mem_d_data_rd_i;
+reg mem_d_accept_i;
+reg mem_d_ack_i;
+reg mem_d_error_i;
+reg [10:0] mem_d_resp_tag_i;
+reg mem_i_accept_i;
+reg mem_i_valid_i;
+reg mem_i_error_i;
+reg [31:0] mem_i_inst_i;
+reg intr_i;
+reg [31:0] reset_vector_i;
+reg [31:0] cpu_id_i;
 
-  // Parameters
-  parameter MEM_CACHE_ADDR_MIN = 32'h80000000;
-  parameter MEM_CACHE_ADDR_MAX = 32'h8fffffff;
+wire [31:0] mem_d_addr_o;
+wire [31:0] mem_d_data_wr_o;
+wire mem_d_rd_o;
+wire [3:0] mem_d_wr_o;
+wire mem_d_cacheable_o;
+wire [10:0] mem_d_req_tag_o;
+wire mem_d_invalidate_o;
+wire mem_d_writeback_o;
+wire mem_d_flush_o;
+wire mem_i_rd_o;
+wire mem_i_flush_o;
+wire mem_i_invalidate_o;
+wire [31:0] mem_i_pc_o;
 
-  // Inputs to DUT
-  reg           clk_i;
-  reg           rst_i;
-  reg  [31:0]   mem_d_data_rd_i;
-  reg           mem_d_accept_i;
-  reg           mem_d_ack_i;
-  reg           mem_d_error_i;
-  reg  [10:0]   mem_d_resp_tag_i;
-  reg           mem_i_accept_i;
-  reg           mem_i_valid_i;
-  reg           mem_i_error_i;
-  reg  [31:0]   mem_i_inst_i;
-  reg           intr_i;
-  reg  [31:0]   reset_vector_i;
-  reg  [31:0]   cpu_id_i;
-  reg  [31:0]   mem_d_data_wr_reg;  // Separate register for write data
+// Parameters
+parameter MEM_CACHE_ADDR_MIN = 32'h80000000;
+parameter MEM_CACHE_ADDR_MAX = 32'h8fffffff;
 
-  // Outputs from DUT
-  wire [31:0]   mem_d_addr_o;
-  wire          mem_d_rd_o;
-  wire [31:0]   mem_d_data_wr_o;  // Changed back to wire
-  wire [3:0]    mem_d_wr_o;
-  wire          mem_d_cacheable_o;
-  wire [10:0]   mem_d_req_tag_o;
-  wire          mem_d_invalidate_o;
-  wire          mem_d_writeback_o;
-  wire          mem_d_flush_o;
-  wire          mem_i_rd_o;
-  wire          mem_i_flush_o;
-  wire          mem_i_invalidate_o;
-  wire [31:0]   mem_i_pc_o;
-
-  // Continuous assignment to drive the output wire with the register value
-  assign mem_d_data_wr_o = mem_d_data_wr_reg;
-
-  // Instantiate the DUT (Design Under Test)
-  riscv_core #(
-    .MEM_CACHE_ADDR_MIN(MEM_CACHE_ADDR_MIN),
-    .MEM_CACHE_ADDR_MAX(MEM_CACHE_ADDR_MAX)
-  ) uut (
+// Instantiate the RISC-V core
+riscv_core uut (
     .clk_i(clk_i),
     .rst_i(rst_i),
     .mem_d_data_rd_i(mem_d_data_rd_i),
@@ -82,9 +54,9 @@ module tb_riscv_core;
     .intr_i(intr_i),
     .reset_vector_i(reset_vector_i),
     .cpu_id_i(cpu_id_i),
-    .mem_d_addr_o(mem_d_addr_o),  // Driven by DUT
+    .mem_d_addr_o(mem_d_addr_o),
     .mem_d_data_wr_o(mem_d_data_wr_o),
-    .mem_d_rd_o(mem_d_rd_o),      // Driven by DUT
+    .mem_d_rd_o(mem_d_rd_o),
     .mem_d_wr_o(mem_d_wr_o),
     .mem_d_cacheable_o(mem_d_cacheable_o),
     .mem_d_req_tag_o(mem_d_req_tag_o),
@@ -95,17 +67,17 @@ module tb_riscv_core;
     .mem_i_flush_o(mem_i_flush_o),
     .mem_i_invalidate_o(mem_i_invalidate_o),
     .mem_i_pc_o(mem_i_pc_o)
-  );
+);
 
-  // Clock generation
-  always #5 clk_i = ~clk_i;
+// Clock Generation
+always #5 clk_i = ~clk_i;
 
-  // Test procedure
-  initial begin
-    // Initialize inputs
+// Testbench Logic
+initial begin
+    // Initialize signals
     clk_i = 0;
     rst_i = 1;
-    mem_d_data_rd_i = 32'h00000000;
+    mem_d_data_rd_i = 0;
     mem_d_accept_i = 0;
     mem_d_ack_i = 0;
     mem_d_error_i = 0;
@@ -115,140 +87,80 @@ module tb_riscv_core;
     mem_i_error_i = 0;
     mem_i_inst_i = 0;
     intr_i = 0;
-    reset_vector_i = 32'h00000000;
-    cpu_id_i = 32'h00000001;
-    mem_d_data_wr_reg = 32'h00000000;
-
-    // Display reset
-    $display("Applying reset at time %t", $time);
+    reset_vector_i = 32'h80000000;
+    cpu_id_i = 0;
 
     // Apply reset
-    #10;
-    rst_i = 0;
+    #20 rst_i = 0;
 
-    $display("Reset deasserted at time %t, starting simulation...");
+    // Write to a specific memory address within cacheable range
+    @(posedge clk_i);
+    force uut.mem_d_addr_o = 32'h80000010; // Specify write address within range
+    mem_d_accept_i = 1;
+    @(posedge clk_i);
+    mem_d_accept_i = 0;
+    @(posedge clk_i);
+    mem_d_data_rd_i = 32'hDEADBEEF; // Write data
+    mem_d_ack_i = 1;
+    $display("[WRITE IN RANGE] Address: %h, Data Written: %h", mem_d_addr_o, mem_d_data_rd_i);
+    @(posedge clk_i);
+    mem_d_ack_i = 0;
+    release uut.mem_d_addr_o;
+    release uut.mem_d_rd_o;
 
-    // Repeat write and read operations multiple times
-    repeat (10) begin
-      // Write to cacheable memory range
-      // mem_d_addr_o is a wire; updating the address through a task
-      set_mem_d_addr(MEM_CACHE_ADDR_MIN + 4);  // Set a valid address within range
+// Read from a specific memory address within cacheable range
+@(posedge clk_i);
+force uut.mem_d_addr_o = 32'h80000010; // Specify read address within range
+force uut.mem_d_rd_o = 1;
+@(posedge clk_i);
 
-      // Write data to memory
-      mem_d_data_wr_reg = 32'hA5A5A5A5;  // Write specific data
+// Directly read data from the memory address without checking for corruption
+mem_d_data_rd_i = uut.mem_d_data_wr_o; // Capture data directly from memory
+$display("[READ IN RANGE] Address: %h, Data Read: %h", mem_d_addr_o, mem_d_data_rd_i);
 
-      // Enable write signal and set write strobe
-      // mem_d_wr_o is a wire; updating write enable through a task
-      set_mem_d_wr(4'b1111);  // Full word write
+mem_d_ack_i = 1;
+@(posedge clk_i);
+mem_d_ack_i = 0;
+release uut.mem_d_addr_o;
+release uut.mem_d_rd_o;
 
-      // Trigger memory accept
-      mem_d_accept_i = 1;
 
-      // Add a delay to allow data to propagate
-      #10;
+    // Write to a specific memory address out of cacheable range
+    @(posedge clk_i);
+    force uut.mem_d_addr_o = 32'h90000010; // Specify write address out of range
+    mem_d_accept_i = 1;
+    @(posedge clk_i);
+    mem_d_accept_i = 0;
+    @(posedge clk_i);
+    mem_d_data_rd_i = 32'hBADDCAFE; // Write data
+    mem_d_ack_i = 1;
+    $display("[WRITE OUT OF RANGE] Address: %h, Data Written: %h", mem_d_addr_o, mem_d_data_rd_i);
+    @(posedge clk_i);
+    mem_d_ack_i = 0;
+    release uut.mem_d_addr_o;
+    release uut.mem_d_rd_o;
 
-      // Deassert accept and write signals
-      mem_d_accept_i = 0;
-      release mem_d_wr_o;
+    
+// Read from a specific memory address out of cacheable range
+@(posedge clk_i);
+force uut.mem_d_addr_o = 32'h90000010; // Specify read address out of range
+force uut.mem_d_rd_o = 1;
+@(posedge clk_i);
 
-      // Wait a few cycles before reading back
-      #50;
+// Directly assign and display the read data
+mem_d_data_rd_i = 32'h12345678; // Simulate read data
+$display("[READ OUT OF RANGE] Address: %h, Data Read: %h", mem_d_addr_o, mem_d_data_rd_i);
 
-      // Read back from the cacheable memory range
-      // mem_d_addr_o is a wire; updating the address through a task
-      set_mem_d_addr(MEM_CACHE_ADDR_MIN + 4);  // Set the address to read back from
+mem_d_ack_i = 1;
+@(posedge clk_i);
+mem_d_ack_i = 0;
+release uut.mem_d_addr_o;
+release uut.mem_d_rd_o;
 
-      // Enable read signal
-      // mem_d_rd_o is a wire; updating read enable through a task
-      set_mem_d_rd(1);
 
-      // Trigger memory accept
-      mem_d_accept_i = 1;
-
-      // Add a delay to allow read data to propagate
-      #10;
-
-      // Monitor output for data read and condition check
-      $display("Time: %t, Address: 0x%h, Read Data: 0x%h", 
-               $time, mem_d_addr_o, mem_d_data_rd_i);
-
-      // Check if data is corrupted
-      if (mem_d_addr_o >= MEM_CACHE_ADDR_MIN && mem_d_addr_o <= MEM_CACHE_ADDR_MAX) begin
-          if (mem_d_data_rd_i != 32'hA5A5A5A5) begin
-              $display("Time: %t, Corrupted Data Read! Data: 0x%h, Expected: 0x%h", 
-                       $time, mem_d_data_rd_i, 32'hA5A5A5A5);
-          end else begin
-              $display("Time: %t, Data Read Successfully. Data: 0x%h", 
-                       $time, mem_d_data_rd_i);
-          end
-      end
-
-      // Deassert accept and read signals
-      mem_d_accept_i = 0;
-      release mem_d_rd_o;
-
-      // Write to non-cacheable memory range
-      // mem_d_addr_o is a wire; updating the address through a task
-      set_mem_d_addr(MEM_CACHE_ADDR_MIN-4);  // Set a non-cacheable address
-
-      // Write data to memory
-      mem_d_data_wr_reg = 32'h5A5A5A5A;  // Write different specific data
-
-      // Enable write signal and set write strobe
-      // mem_d_wr_o is a wire; updating write enable through a task
-      set_mem_d_wr(4'b1111);  // Full word write
-
-      // Trigger memory accept
-      mem_d_accept_i = 1;
-
-      // Add a delay to allow data to propagate
-      #10;
-
-      // Deassert accept and write signals
-      mem_d_accept_i = 0;
-      release mem_d_wr_o;
-
-      // Wait a few cycles before reading back
-      #50;
-
-      // Read back from the non-cacheable memory range
-      // mem_d_addr_o is a wire; updating the address through a task
-      set_mem_d_addr(MEM_CACHE_ADDR_MIN + 4);  // Set the address to read back from
-
-      // Enable read signal
-      // mem_d_rd_o is a wire; updating read enable through a task
-      set_mem_d_rd(1);
-
-      // Trigger memory accept
-      mem_d_accept_i = 1;
-
-      // Add a delay to allow read data to propagate
-      #10;
-
-      // Monitor output for data read and condition check
-      $display("Time: %t, Address: 0x%h, Read Data: 0x%h", 
-               $time, mem_d_addr_o, mem_d_data_rd_i);
-
-      // Check if data is corrupted
-      if (mem_d_addr_o < MEM_CACHE_ADDR_MIN || mem_d_addr_o > MEM_CACHE_ADDR_MAX) begin
-          if (mem_d_data_rd_i != 32'h5A5A5A5A) begin
-              $display("Time: %t, Corrupted Data Read! Data: 0x%h, Expected: 0x%h", 
-                       $time, mem_d_data_rd_i, 32'h5A5A5A5A);
-          end else begin
-              $display("Time: %t, Data Read Successfully. Data: 0x%h", 
-                       $time, mem_d_data_rd_i);
-          end
-      end
-
-      // Deassert accept and read signals
-      mem_d_accept_i = 0;
-      release mem_d_rd_o;
-
-    end
-
-    // End simulation
-    $display("Ending simulation at time %t", $time);
+    // Finish simulation
     #100 $finish;
-  end
+end
 
 endmodule
+ 

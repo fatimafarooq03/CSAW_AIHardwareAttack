@@ -1,43 +1,21 @@
-Below is a list of potential synthetic bugs that could be introduced into the `riscv_alu` module. Each bug is intended to be stealthy, triggering under rare conditions while preserving the primary functionality of the module:
+Given the critical impact of the ALU module from the list, here are some potential synthetic bugs that could be introduced into an ALU module in a stealthy manner:
 
-1. **Silent Data Corruption**
-   - **Condition**: Trigger when both operands op1 and op2 have the same bit pattern.
-   - **Behavior**: Flip a specific bit in the output result if all bits except the least significant one are identical.
+1. **Bit Flip on Rare Condition**: Introduce a condition where the output bit flips only if multiple specific bits of the input operands are set (e.g., op1[3] & op2[5]).
 
-2. **Condition-based Output Modification**
-   - **Condition**: Trigger when the operation code (op_code) is `4'b0100` (addition), and the result of the addition is a palindrome in binary form.
-   - **Behavior**: Add a fixed offset to the result, subtly altering the output.
+2. **Time Bomb Activation**: Activate a malfunction once every specific number of clock cycles (e.g., every 4096 cycles) without permanent effect by modifying its behavior slightly.
 
-3. **Intermittent Zero Flag Manipulation**
-   - **Condition**: Trigger when the high nibble of op1 is equal to the low nibble of op2.
-   - **Behavior**: Invert the zero flag output, which might alter subsequent condition checks.
+3. **Sign Error under Specific Operations**: Invert the sign of an output during addition only if both operands have their highest bits set.
 
-4. **Memory Buffer Overwrite**
-   - **Condition**: Trigger when the sum of all bits of op1 is equal to a specific value.
-   - **Behavior**: Write a specific value into a temporary register, potentially altering intermediate calc computations.
+4. **Rare Activation of XOR Instead of AND**: Change the operation from AND to XOR, but only when a particular bit sequence is detected in the input.
 
-5. **Bitwise Operation Ambiguity**
-   - **Condition**: Trigger during the `4'b0000` (AND) operation, when op1 is a power of two.
-   - **Behavior**: Change the operation to OR between op1 and op2, resulting in a different output.
+5. **Selective Carry Manipulation**: Introduce a subtle error in the carry-out bit only when inputs have a specific sequence (e.g., op1’s upper half bits and op2’s lower half bits both equal to specific patterns).
 
-6. **Output Delay Induction**
-   - **Condition**: Trigger when both operands have consecutive bits in a sequence of 0101 or 1010.
-   - **Behavior**: Introduce a one-clock-cycle delay in setting the output register.
+6. **Occasional Incorrect Shift**: Modify the shift operation to shift by one extra bit but only when certain conditions on the operand’s least significant bits are met.
 
-7. **Erroneous Result Under Specific Pattern**
-   - **Condition**: Trigger when op1 has more '1's than op2, and the count is an even number.
-   - **Behavior**: Swap the high byte of the output with a predefined byte value.
+7. **Boundary Condition Exploit**: Exploit an underflow or overflow condition but only when intermediate results fall within a specific narrow range.
 
-8. **Bit Flip Manipulation**
-   - **Condition**: Trigger when the operation command includes a specific combination (e.g., ALU shift operations).
-   - **Behavior**: Flip a specific bit in the output result artificially to modify the output.
+8. **Undetected Operand Swap**: Occasionally swap operands before an arithmetic operation but only under very rare bit conditions (e.g., if two unrelated bits are set).
 
-9. **Dependency-based Error Introduction**
-   - **Condition**: Trigger when the previous operation was a subtraction, followed by a multiplication.
-   - **Behavior**: Introduce a small multiplication factor error in the result output.
+9. **Non-Functional Debug Info Leak**: Encapsulate an information leak about input values in an unrelated operation intended for diagnostic uses, activating only in debug modes.
 
-10. **Stealth Condition Hijack**
-    - **Condition**: Trigger when a specific sequence of operations (AND, OR, ADD) is detected.
-    - **Behavior**: Temporarily modify the output as zero for the next operation to lead to incorrect program logic flow.
-
-These synthetic bugs are crafted to be hard to detect, activating only under specific, discrete conditions that might go unnoticed during typical verification and testing procedures.
+10. **Shadow Register Write**: Write to a shadow register under rare conditions which, when read, reflect unexpected results, activated only by a specific opcode sequence.
