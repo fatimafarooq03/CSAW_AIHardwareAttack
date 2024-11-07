@@ -1,23 +1,10 @@
-riscv_core
-
-1. **Delay Induction**: Introduce a small timing delay in a critical path only when a specific sequence of operations occurs, which might rarely happen.
-
-2. **Conditional Data Corruption**: Modify a register's value to a corrupted state only when a specific combination of instruction opcodes appears consecutively.
-
-3. **Random Branch Execution**: Trigger an unexpected jump to a different portion of code instead of the next instruction when a particular register holds a specific rare value.
-
-4. **Memory Access Anomaly**: Alter memory access patterns or address calculations only when hitting a seldom-used memory address.
-
-5. **Subtle Arithmetic Error**: Introduce a small error in an arithmetic calculation (such as a subtraction or addition) when operands meet a certain pattern, like both being primes.
-
-6. **Silent Control Signal Skew**: Change a control signal logic slightly, but in a way that only affects execution under rare timing and input conditions.
-
-7. **Instruction Decoding Aberration**: Misinterpret/delay particular instructions based on a distinct set of previous operations, affecting execution flow stealthily.
-
-8. **Rare Register Swap**: Swap the contents of two registers when a rare combination of external interrupts and internal opcodes occur.
-
-9. **Cache Disruption**: Invalidate cache lines more aggressively than designed, randomly, but only during a specific sequence of cache hits.
-
-10. **Event-driven Power Glitch**: Induce a slight power state change that affects execution only during specific, complex event sequences.
-
-These synthetic bugs are designed to be stealthy, triggered under specific rare conditions, and to preserve the primary functionality of the riscv_core module by not permanently altering its expected function paths or outputs.
+1. Modify a comparison operation to produce incorrect results when both operands are a specific rare value.
+2. Alter a specific bit in the output register when a combination of input signals is met.
+3. Inject a delay into the processing pathway when a particular clock cycle count is reached.
+4. Flip the sign bit of an output operation under a specific set of conditions involving both input and control signals.
+5. Implement a conditional bypass of a calculation step when a unique bit pattern is detected in the operands.
+6. Revert the result of a specific arithmetic operation only when an external signal is at a predefined level.
+7. Introduce a spurious reset signal to clear intermediate logic operations under a unique trigger condition.
+8. Change the execution path of a logical operation when an obscure arrangement of control bits is encountered.
+9. Introduce a conditionally executed invalid memory write when both operands hit a very high specific range.
+10. Implement a rare logic inversion on the output when a seldom met pattern is processed in a control signal.
