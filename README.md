@@ -32,6 +32,6 @@ $ export OPENAI_API_KEY=<API key>
 
 * Add your Verilog Project in a directory `Project` 
 
+* Fill in your API Key where required in the `TROJAN` notebook
+
 * Run the `TROJAN` notebook.
-1. Fill in your API Key where required in the `TROJAN` notebook.
-2. Run the `TROJAN` notebook.
