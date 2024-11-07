@@ -16,7 +16,7 @@ Future directions for this research involve experimenting with the trojan insert
 ## Replication
 To replicate the pipeline, follow these steps:
 
-* Set up a virtual environment (optional but recommended):
+* Set up a virtual environment:
 ```bash
 $ python3 -m venv venv
 $ source venv/bin/activate
@@ -25,13 +25,13 @@ $ source venv/bin/activate
 ```bash
 $ pip3 install -r requirements.txt
 ```
-
 * set your API key
 ```bash
 $ export OPENAI_API_KEY=<API key>
 ```
 
-* run the python script
-```bash
-$ python response.py
-```
+* Add your Verilog Project in a directory `Project` 
+
+* Run the `TROJAN` notebook.
+1. Fill in your API Key where required in the `TROJAN` notebook.
+2. Run the `TROJAN` notebook.
