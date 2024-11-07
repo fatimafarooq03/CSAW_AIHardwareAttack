@@ -7,7 +7,7 @@ on fine-tuning. This framework aims to assess how GPT-4o can identify hardware v
 
  The block diagram of the proposed pipeline is as follows:
 
- ![Pipeline diagram](CSAW_AI_Hardware.jpg)
+ ![Pipeline diagram](CSAW_AI_Hardware.png)
 
 ## Plan progress
 We constructed a set of few-shot examples based on the Hardware Trojan Dataset of RISC-V (https://zenodo.org/records/11035341) by selecting code snippets from the files that contained trojans. Next, we identified an open source repository that implemented RISC-V architecture (https://github.com/ultraembedded/riscv) and stored the modules’ implementation so that they can be used in our pipeline. Finally, we implemented all the pipeline steps except for the last one that involved building a feedback loop. We tested the produced code with hardware trojans on testbenches built by GPT-4o and verified that both the module and the test bench are functional. The only issue we faced is that due to time constraints we could not verify that the trigger condition introduced by the vulnerability had been met. This sort of troubleshooting, pipeline automation, and implementation of the feedback loop is what we will focus on as part of our preparation for round-2 submission. 
