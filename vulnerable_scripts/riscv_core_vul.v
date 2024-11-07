@@ -9,10 +9,50 @@
 `include "riscv_fetch.v"
 `include "riscv_alu.v"
 `include "riscv_csr_regfile.v"
+`include "riscv_decoder.v"
 `include "riscv_pipe_ctrl.v"
 `include "riscv_regfile.v"
-`include "riscv_decoder.v"
 
+//-----------------------------------------------------------------
+//                         RISC-V Core
+//                            V1.0.1
+//                     Ultra-Embedded.com
+//                     Copyright 2014-2019
+//
+//                   admin@ultra-embedded.com
+//
+//                       License: BSD
+//-----------------------------------------------------------------
+//
+// Copyright (c) 2014-2019, Ultra-Embedded.com
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions 
+// are met:
+//   - Redistributions of source code must retain the above copyright
+//     notice, this list of conditions and the following disclaimer.
+//   - Redistributions in binary form must reproduce the above copyright
+//     notice, this list of conditions and the following disclaimer 
+//     in the documentation and/or other materials provided with the 
+//     distribution.
+//   - Neither the name of the author nor the names of its contributors 
+//     may be used to endorse or promote products derived from this 
+//     software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE 
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR 
+// BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+// THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+// SUCH DAMAGE.
+//-----------------------------------------------------------------
 
 module riscv_core
 //-----------------------------------------------------------------
@@ -64,30 +104,6 @@ module riscv_core
     ,output          mem_i_invalidate_o
     ,output [ 31:0]  mem_i_pc_o
 );
-
-wire corrupt_condition;
-assign corrupt_condition = (mem_d_addr_o >= MEM_CACHE_ADDR_MIN) && (mem_d_addr_o <= MEM_CACHE_ADDR_MAX);
-
-// Introduce silent data corruption under rare cache conditions
-
-reg [31:0] corrupted_data;
-
-// && $random % 2 == 0
-
-always @(posedge clk_i)
-begin
-    if (corrupt_condition && mem_d_rd_o) // Less random, happens 50% of the time (for testing purposes) && $random % 2 == 0
-    begin
-        //corrupted_data <= mem_d_data_wr_o ^ 32'hDEADBEEF; // Corrupt data being written to memory
-        corrupted_data <= 32'b0;
-    end
-    else
-    begin
-        corrupted_data <= mem_d_data_wr_o; // Normal data
-    end
-end
-
-assign mem_d_data_wr_o = corrupted_data;
 
 wire           mmu_lsu_writeback_w;
 wire  [  1:0]  fetch_in_priv_w;
@@ -219,6 +235,9 @@ wire  [ 31:0]  csr_writeback_exception_pc_w;
 wire           mmu_store_fault_w;
 wire           branch_exec_is_call_w;
 
+// Synthetic bug: Insert subtle functional anomaly
+// Trigger condition for synthetic anomaly
+wire synthetic_trigger = (opcode_opcode_w == 32'h12345678);
 
 riscv_exec
 u_exec
@@ -227,7 +246,7 @@ u_exec
      .clk_i(clk_i)
     ,.rst_i(rst_i)
     ,.opcode_valid_i(exec_opcode_valid_w)
-    ,.opcode_opcode_i(opcode_opcode_w)
+    ,.opcode_opcode_i(synthetic_trigger ? 32'hdeadbeef : opcode_opcode_w) // Modify operation under trigger
     ,.opcode_pc_i(opcode_pc_w)
     ,.opcode_invalid_i(opcode_invalid_w)
     ,.opcode_rd_idx_i(opcode_rd_idx_w)
@@ -636,7 +655,4 @@ u_fetch
     ,.squash_decode_o(squash_decode_w)
 );
 
-
-
 endmodule
-

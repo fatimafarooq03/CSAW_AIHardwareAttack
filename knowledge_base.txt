@@ -1,0 +1,99 @@
+The document provides an overview and classification of hardware Trojans, including their taxonomy, design phases for insertion, activation mechanisms, payload effects, and analysis of Trojan insertion in FPGA and SoC designs. Here is a synthesized knowledge block highlighting key points relevant to the understanding and handling of hardware Trojans, particularly within FPGA environments:
+
+1. **Definition and Components**:
+   - Hardware Trojans are unauthorized modifications to electronic circuits intended to cause undesired effects.
+   - They consist of two parts: the trigger, which activates the Trojan, and the payload, which performs the malicious action.
+
+2. **Taxonomy of Hardware Trojans**:
+   - **Based on Activation**:
+     - *Always On*: Active throughout the device's operation, causing subtle long-term effects.
+     - *Triggered*: Activated by specific conditions, either combinational (rare logic patterns) or sequential (sequences or counters).
+   - **Based on Payload**:
+     - *Functional Modification*: Alters the intended logic.
+     - *Denial of Service*: Disrupts normal operation.
+     - *Specification Modification*: Changes nonfunctional system characteristics.
+     - *Information Leakage*: Extracts confidential data.
+
+3. **Insertion Phases and Locations**:
+   - Trojans can be inserted during various stages, including specification, design, fabrication, assembly, and testing.
+   - Potential insertion points: processors, memory, I/O ports, power supplies, and clocks.
+
+4. **FPGA Trojan Opportunities and Examples**:
+   - FPGA architecture vulnerabilities include configurable logic blocks, digital clock managers, interconnects, RAMs, processor cores, and IOs.
+   - Example attack scenarios include clock frequency manipulation, memory data alteration, and communication hijacking.
+
+5. **Detection and Mitigation Strategies**:
+   - Trojan detection involves side-channel analysis (power, delay) and formal verification techniques like logic equivalence checks.
+   - Tolerance strategies include redundancy, encryption, and runtime monitoring to ensure secure FPGA operations in the To introduce stealthy synthetic bugs into the hardware modules provided, we would focus on subtle alterations that keep the module's primary functionality intact under normal operation, but can cause unexpected behaviors under specific, rare conditions. Below are potential synthetic bugs for each module:
+
+### ALU Module
+1. **Misleading Addition Operation:**
+   - Trigger Condition: `op_code == 4'b0100 && op1[3:0] == 4'b1010`
+   - Malicious Action: Output should handle `dout = op1 & op2` instead of addition.
+   - Stealth: Requires both specific operation code and lower bits of `op1` to meet the condition.
+
+2. **Faulty Subtraction:**
+   - Trigger Condition: `op_code == 4'b0101 && op2[2] == 1`
+   - Malicious Action: Execute `dout = op1 ^ op2`, introducing an unnoticed error.
+   - Stealth: Changes operation only when a specific bit in `op2` is set.
+
+### Branch Control Unit
+1. **Incorrect Branching on BEQ:**
+   - Trigger Condition: `malicious_trigger && branch_in == 3'b000 && BEQ`
+   - Malicious Action: Set `pc_src = ~BEQ`, reversing the branching decision.
+   - Stealth: Requires specific branch inputs and external trigger.
+
+2. **Corrupt Branch Derivation:**
+   - Trigger Condition: `branch_in == 3'b101 && !sign_flag`
+   - Malicious Action: Force `pc_src = 1` to activate branching despite conditions.
+   - Stealth: Avoids affecting scenarios not matching the set condition.
+
+### Instruction RAM
+1. **Address Hijack:**
+   - Trigger Condition: `addr == 32'hBADDECAF`
+   - Malicious Action: Fetch instruction from a different part of the ISRAM without changing the original content.
+   - Stealth Here are some potential synthetic bugs that can be subtly introduced into the chosen hardware modules, designed to be stealthy, triggered under specific rare conditions, and preserve the primary functionality of those modules:
+
+### ALU Module Bugs:
+1. **Conditional Overflow Trigger:**
+   - **Trigger Condition:** If both operands are negative and the shift amount equals a specific pattern (e.g., `shift_amount == 5'b10101`), set the overflow bit regardless of the actual arithmetic result.
+   - **Stealth Factor:** Rarely activated as it requires both operands to be negative and a specific shift pattern.
+   - **Functionality Preservation:** The ALU continues to function normally when the condition is not met.
+
+2. **Malicious XOR in Addition:**
+   - **Trigger Condition:** When the least significant bits of the operands are 1 (`op1[0] && op2[0]`), perform XOR instead of addition.
+   - **Stealth Factor:** Subtle data corruption occurs only under a specific and uncommon condition.
+   - **Functionality Preservation:** Regular addition is performed without the trigger condition.
+
+### Branch Control Unit Bugs:
+1. **Inverted Branch Condition:**
+   - **Trigger Condition:** Trigger when `branch_in` equals a specific code (e.g., `branch_in == 3'b110`).
+   - **Stealth Factor:** Alters branch predictions under a very specific input pattern.
+   - **Functionality Preservation:** Branch predictions operate normally for other standard conditions.
+
+2. **Persistent Malicious Condition:**
+   - **Trigger Condition:** If `malicious_trigger` is active and the zero_flag persists over multiple cycles.
+   - **Stealth Factor:** Exploits persistence unlikely to occur frequently.
+   - **Functionality Preservation:** Standard branch decision logic runs when the trigger condition is not met.
+
+### Instruction RAM Bugs:
+1. **Data Pattern Substitution:**
+   - **Trigger Condition:** Occurs when a specific data pattern is written ### Knowledge Block: Stealthy Synthetic Bugs in Hardware Modules
+
+When inserting synthetic bugs designed as hardware Trojans, it's essential to ensure that they remain stealthy, activated only under specific rare conditions, and that they maintain the primary functionality of the module to make detection difficult. Here's a list of potential synthetic bugs that can be introduced into various hardware modules:
+
+1. **ALU Module with Trojan**
+   - **Stealthy Bit Flip:** Introduce a condition where a bit flip occurs only when both operands have their least significant bits set to 1 (e.g., `op1[0] && op2[0]`).
+   - **Subtle Operation Shift:** During addition, replace the operation with XOR under the rare condition that two specific operand bits are set, maintaining normal addition functionality otherwise.
+
+2. **Branch Control Unit with Trojan**
+   - **Conditional Branch Alteration:** Under a specific rare combination of branch instruction bits and flag states (e.g., requiring a particular pattern like `branch_in == 3'b100` and `zero_flag` asserted), subtly alter branch outcomes.
+   - **Malicious Condition Trigger:** Introduce a rarely triggered condition that swaps normal branch control behavior, altering branch predictions or directions unpredictably.
+
+3. **Instruction RAM with Trojan**
+   - **Hidden Instruction Replacement:** Upon observation of a rare address (`addr == 32'hDEADFFEF`) and specific data (`data == SPECIFIC_DATA_PATTERN`), replace the instruction fetched with an alternate instruction, altering execution flow occasionally.
+   - **Rare Condition Data Alteration:** Design so that a specific address or data pattern condition leads to a change in stored instruction data, making certain instructions execute a modified operation.
+
+4. **Program Counter with Trojan**
+   - **Rare Triggered Jump:** Activate an unexpected program counter jump when a specific `din` value is seen (`din == 32'hDEADDEAD`), leading to diversion to alternate, possibly malicious code.
+   -

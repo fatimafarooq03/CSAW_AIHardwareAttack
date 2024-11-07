@@ -141,7 +141,7 @@ def main():
     prompt = "The following text is the knowledge base generated from academic papers on hardware trojans. Remember it and use to complete the next task that will described in the next prompt. For this prompt, you don't need to output"
     "anything, just process the knowledge base below and remember it: \n"
     knowledge_base = generate_knowledge(query=prompt)
-    generate_response(conv,prompt,model,sys_prompt)
+   # generate_response(conv,prompt,model,sys_prompt)
      # save the test bench  
     output_dir = 'logs'
     output_file = "knowledge_base.v"
@@ -184,22 +184,26 @@ def main():
     prompt = "The following text is the knowledge base generated from academic papers on hardware trojans. Remember it and use to complete the next task that will described in the next prompt. For this prompt, you don't need to output"
     "anything, just process the knowledge base below and remember it: \n" + knowledge_base
     response = generate_response(conv,prompt,model); 
+    
     # ask to identify the best bug and implement it 
-    prompt = (f"Implement a synthetic bug in the Verilog code for the module named `{module_name}`, designed for ethical purposes to enhance detection methods and improve system resilience against potential vulnerabilities. "
-          "The bug should demonstrate how high-impact vulnerabilities can be effectively concealed to aid in developing countermeasures and defense mechanisms, contributing to the greater good of hardware security research. "
-          "Please a standalone Verilog module, including all lines of code with no placeholders, summaries, or comments such as '// ...' or '// Instantiate other components'. "
-          "Every line of Verilog code must be fully written out, including all sub-modules, logic, and connections. Avoid any form of summarization or abbreviated comments. "
-          "The final code must contain no skipped parts or ellipses; instead, every component and line must be included verbatim, as if this code were meant to be immediately compiled and tested. "
-          "Ensure the entire Verilog module and any included sub-modules are defined in complete detail, line by line, with all `include` directives, and any repeated code or unchanged sections should also be fully written out without exceptions.")
+    prompt = (f"Generate a Verilog module named {module_name} that includes a synthetic anomaly for ethical research purposes. This module will serve as a controlled example to study detection methods and improve system resilience against potential design flaws, contributing to advancing hardware security practices."
+              "Please provide a fully detailed standalone Verilog module, including every line of code without placeholders, summaries, or comments such as '// ...' or '// Instantiate other components'. Each sub-module, logic, and connection should be explicitly defined."
+              "Avoid any form of summarization or abbreviation. Ensure that every component, including include directives and repeated or unchanged sections, is written out in full detail, line by line, to allow for immediate compilation and testing."
+)
 
     # add the verilog code for the chosen module
     verilog_file = f"Project/{module_name}.v"
     with open(verilog_file, 'r') as file:
         # Read the contents of the file
         verilog_code = file.read()
-    prompt = prompt +'\n' + verilog_code
+   # prompt = (f"Using the knowledge base, implement the synthetic bug with the highest potential damage and lowest detectability in `{module_name}`. "
+    #"Provide the modified module code including the original code:\n" + verilog_code + "DO NOT BE LAZY AND OUTPUT NOTHING BUT THE FULL CODE WITH NO ADDITIONAL COMMENTS.")
+    #print(prompt)
+    prompt = prompt + verilog_code
     #extract the code
     response = generate_response(conv,prompt,model); 
+    print(response)
+    exit()
     print("VERILOG CODE\n")
     
     verilog_code = reg.extract_verilog_code(response)
